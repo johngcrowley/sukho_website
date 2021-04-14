@@ -10,29 +10,6 @@ auth_bp = Blueprint(
     template_folder='templates',
     static_folder='static'
 )
-
-# @auth_bp.route('/update/<int:id>',methods=["GET","POST"])
-# def update(id):
-#     name_to_update = User.query.filter_by(User.id == id).first()
-#     if request.method == "POST":
-#         name = request.form.get('name')
-#         password = request.form.getlist('password')
-#         if password == '':
-#             msg = "Passwords must match"
-#             return render_template('signup.html',msg=msg)
-#         name_to_update.name = name
-#         name_to_update.password = password
-#         try:
-#             db.session.commit()
-#             flash("User Updated Successfully")
-#             return render_template("update.html",name_to_update = name_to_update)
-#         except:
-#             flash("Error! Looks like there was a problem. Try again")
-#             return render_template("update.html",name_to_update = name_to_update)
-
-#     else:
-#         return render_template("update.html",name_to_update=name_to_update)
-
 @auth_bp.route('/signup',methods=["GET","POST"])
 def signup():
     if request.method == "GET":
