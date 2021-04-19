@@ -26,6 +26,10 @@ class User(UserMixin, db.Model):
         unique = False,
         nullable = False
     )
+    admin = db.Column(
+        db.Boolean,
+        nullable = True
+    )
     def set_password(self, password):
         """Create hashed p/w"""
         self.password = generate_password_hash(
@@ -60,12 +64,6 @@ class employee(db.Model):
     )
     position = db.Column(
         db.String(64),
-        nullable=False
-    )
-    admin = db.Column(
-        db.Boolean,
-        index=False,
-        unique=False,
         nullable=False
     )
     def __repr__(self):

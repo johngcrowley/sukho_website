@@ -27,7 +27,10 @@ main_bp = Blueprint(
 @login_required
 @main_bp.route('/')
 def index():
-    employees = employee.query.all()
+    try:
+        employees = employee.query.all()
+    except:
+        employees = 'please add employees to the database'
     return render_template('index.html',employees=employees)
 
 @login_required

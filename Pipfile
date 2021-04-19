@@ -9,6 +9,9 @@ gunicorn = "*"
 flask-sqlalchemy = "*"
 psycopg2-binary = "*"
 pandas = "*"
+flask-login = "*"
+df2gspread = "*"
+werkzeug = "*"
 
 [dev-packages]
 

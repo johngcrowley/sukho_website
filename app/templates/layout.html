@@ -95,7 +95,7 @@ footer {
                     {% if not current_user.is_authenticated %}
                     <li><a href="{{ url_for('auth_bp.login') }}">Login</a></li>
                     {% endif %}
-                    {% if current_user.name == 'Keith' %}
+                    {% if current_user.admin == True %}
                     <li><a href="{{ url_for('auth_bp.signup') }}">Manage Profiles</a></li>
                     {% endif %}
                     {% if current_user.is_authenticated %}
