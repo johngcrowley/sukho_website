@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if message %}
+<h5 class="message">{{ message }}</h5>
+{% endif %}
+
+<form action="/newshift" method="POST">
+  <div class="mb-3">
+    <h4 for="employee">Please choose both location/shift</h4>
+    <br>
+    <select class="form-select" name="loc">
+      <option value="" disabled selected autofocus class="form-control">Location</option><br>
+      {% for loc in location %}
+      <option value="{{ loc }}">{{ loc }}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <select class="form-select" name="time">
+      <option value="" disabled selected autofocus class="form-control">Dinner / Lunch</option><br>
+      {% for time in times %}
+      <option value="{{ time }}">{{ time }}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <h4 for="employee">FOH Team</h4>
+    {% for n in range(fields) %}
+          <select class="form-select" name="employee">
+              <option value="" disabled selected autofocus class="form-control">Employee</option><br>
+              {% for employee in employees %}
+              <option value="{{ employee.name }}">{{ employee.name }}</option>
+              {% endfor %}
+          </select>
+          <br>
+    {% endfor %}
+    <br>
+    <h4 for="name">Total Tips (We'll divide it up for you)</h4>
+    <br>
+    <div>
+    <input autocomplete="off" autofocus class="form-control" name="tips" placeholder="Please enter an amount" type="text">
+    </div>
+  </div>
+  <br>
+  <button class="btn btn-primary" type="submit">Submit</button>  
+</form>
+
+{% endblock %}
