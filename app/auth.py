@@ -39,17 +39,17 @@ def signup():
 def login():
     if request.method == "GET":
         #create admin upon app creation
-        if User.query.all() == '' or User.query.all() == None:
-            email = 'johncrowley547@gmail.com'
-            name = 'admin'
-            password = 'admin'
-            admin = True
-            our_admin = User(email=email,name=name,password=generate_password_hash(password, method='sha256'),admin=admin)
-            db.session.add(our_admin)
-            db.session.commit()
-            return render_template('login.html')
-        else:
-            return redirect(url_for('main_bp.index'))
+        # if User.query.all() == '' or User.query.all() == None:
+        email = 'johncrowley547@gmail.com'
+        name = 'admin'
+        password = 'admin'
+        admin = True
+        our_admin = User(email=email,name=name,password=generate_password_hash(password, method='sha256'),admin=admin)
+        db.session.add(our_admin)
+        db.session.commit()
+        
+        return render_template('login.html')
+
     else:
         email = request.form.get('email')
         password = request.form.get('password')
