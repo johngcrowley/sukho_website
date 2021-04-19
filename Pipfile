@@ -12,6 +12,8 @@ pandas = "*"
 flask-login = "*"
 df2gspread = "*"
 werkzeug = "*"
+python-dotenv = "*"
+oauth2client = "*"
 
 [dev-packages]
 
