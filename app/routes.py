@@ -86,8 +86,7 @@ def add_employee():
                     new_employee = employee(
                     name=name,
                     email=email,
-                    position=position,
-                    admin=False
+                    position=position
                     )
                     db.session.add(new_employee)
                     db.session.commit()
