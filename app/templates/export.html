@@ -1,0 +1,15 @@
+
+<form action="/export" method="post">
+{% if msg %} 
+<p class="message">{{ msg }}</p>
+{% endif %} 
+<label for="name">Which Location?</label>
+<br>
+<select name="pos" class="form-control">
+            <option value="" disabled selected autofocus class="form-control">Position</option><br>
+            {% for loc in location %}
+            <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+</select><br>
+<button class="btn btn-primary" type="submit">Submit</button>
+</form>

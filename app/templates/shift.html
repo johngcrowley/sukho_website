@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if msg %}
+<h5 class="message">{{ msg }}</h5>
+{% endif %}
+
+<form action="/create" method="post">
+  <div class="form-group">
+    <h5 for="tips">How many employees this shift?</h5>
+    <input autocomplete="off" autofocus class="form-control" name="number" placeholder=" " type="text">
+  </div>
+  <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+{% endblock %}
+
+     

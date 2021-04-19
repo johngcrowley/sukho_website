@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <h3 class="title">New Manager</h3>
+    {% with messages = get_flashed_messages() %}
+    {% if messages[0] %}
+    <div>
+    {{ messages[0] }}. Go to <a href="{{ url_for('auth_bp.login') }}">login page</a>.
+    </div>
+    {% endif %}
+    {% if messages [1:] %}
+    {% endif %}
+    {% endwith %}
+    {% if msg %}
+    <h5>{{msg}}</h5>
+    {% endif %}
+    <form method="POST" action="/signup">
+    <label for="name">Name</label>
+    <div>
+    <input autocomplete="off" autofocus class="form-control" name="name" placeholder=" " type="text">
+    </div>
+    <label for="name">Email</label>
+    <div>
+    <input autocomplete="off" autofocus class="form-control" name="email" placeholder=" " type="text">
+    </div>
+    <label for="name">Password</label>
+    <div>
+    <input autocomplete="off" autofocus class="form-control" name="password" placeholder=" " type="text">
+    </div>
+    <button class="btn btn-primary">Sign Up</button>
+    </form>
+<br>
+<br>
+    <h3 class="title">Managers / Admin</h3>
+    {% for user in users %}
+    {% if user.name != '' %}
+    <table>
+        <tr>
+            <td autofocus class="form-control">{{user.name}}</td>
+        </tr>
+        <br>
+        <br>
+        <tr>
+            <td autofocus class="form-control">{{user.email}}</td>
+        </tr>
+        <br>
+        <tr>
+           <td><a class="btn btn-primary" href="/update/{{user.id}}">Update</a></td> 
+        </tr>
+    </table>  
+    <br>
+    {% endif %}  
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+.vscode
+__pycache__
+.env
+client_secret.json
+token.pickle
+.DS_store
+/Users/JC/sukho/client_secret.json
