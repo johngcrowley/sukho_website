@@ -1,10 +1,11 @@
 
 from flask import current_app as app
-from .models import db, employee, tips, User
+from .models import db, employee, tips, User, Crews
 import pandas as pd
 from df2gspread import df2gspread as d2g
 from datetime import datetime as dt
 from sqlalchemy.sql import func
+from sqlalchemy import desc
 import config
 from flask import Blueprint, redirect, request, render_template, url_for, flash
 from flask_login import login_required, current_user
@@ -117,6 +118,9 @@ def create():
 @login_required
 @main_bp.route('/newshift',methods=["POST"])
 def newshift():
+    
+    #Instantiate Crew ID by Inserting new Autoincrement value into Crews Join Table
+    
     #to_email = []
     employee_ids = []
     #email = request.form.getlist("email?")
@@ -124,6 +128,12 @@ def newshift():
     tipz = request.form.get("tips")
     location = request.form.get("loc")
     time = request.form.get("time")
+
+    new_crew = Crews(
+        created_at = dt.now() 
+        )
+    db.session.add(new_crew)
+    db.session.commit()
     
     def check_fields(tipz):
         flag = True
@@ -141,7 +151,7 @@ def newshift():
     
     if  check_fields(tipz) == True:
         tipz = int(tipz)
-    
+
         # shift_tips = dict(zip(names,tipz))
         # for i, key in enumerate(shift_tips.keys()):
         #     for j in email:
@@ -149,6 +159,7 @@ def newshift():
         #             whom = employee.query.filter(
         #                 employee.name == key).first()
         #             to_email.append(whom.email)
+        crew_id = Crews.query.order_by(desc(Crews.created_at)).limit(1).first()
 
         for name in names:
             person = employee.query.filter(employee.name == name).first()
@@ -157,9 +168,9 @@ def newshift():
                 employee = name,
                 employee_id = person.id,
                 tips = persons_tips,
-                created_at = str(dt.now())[:10],
                 location = location,
-                time = time
+                time = time,
+                crew_id = crew_id.id
             )
             db.session.add(new_shift)
             db.session.commit()
@@ -172,9 +183,9 @@ def newshift():
                 employee = 'Kitchen',
                 employee_id = kitchen.id,
                 tips = tip_split(tipz)[2],
-                created_at = str(dt.now())[:10],
                 location = location,
-                time = time
+                time = time,
+                crew_id = crew_id.id
             )
             db.session.add(kitchen_tips)
             db.session.commit()
@@ -185,18 +196,19 @@ def newshift():
                 employee = 'Dish',
                 employee_id = dish.id,
                 tips = tip_split(tipz)[1],
-                created_at = str(dt.now())[:10],
                 location = location,
-                time = time
+                time = time,
+                crew_id = crew_id.id
             )
             db.session.add(dish_tips)
             db.session.commit()
+
     else:
         msg='fill out all fields'
         return render_template('shift.html',msg=msg)
     
-    current = str(dt.now())[:10]
-    tipout = tips.query.filter(tips.location==location,tips.time == time,tips.created_at==current).all()
+    
+    tipout = tips.query.filter(tips.crew_id==crew_id.id).all()
 
 
     return render_template('success.html',tipout=tipout,location=location)
@@ -207,8 +219,8 @@ def export():
 
     loc = request.form.get("location")
     dataframe = pd.read_sql('''
-    SELECT tips.employee_id, tips.location, tips.time, employee.position, employee.name, tips.tips, tips.created_at FROM tips
-    JOIN employee ON tips.employee_id=employee.id''',db.session.bind)
+    SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
+    JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
 
     dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
 
@@ -228,10 +240,13 @@ def export():
         marigny = dataframe.loc[dataframe['location'] == 'Marigny']
         marigny_df = df_prep(marigny)
         d2g.upload(marigny_df, spreadsheet_key, wks_name[0], credentials=creds, row_names=True)
-    else:
+    elif loc == 'Uptown':
         uptown = dataframe.loc[dataframe['location'] == 'Uptown']
         uptown_df = df_prep(uptown)
         d2g.upload(uptown_df, spreadsheet_key, wks_name[1], credentials=creds, row_names=True)
-    
+    else:
+        msg = 'Please Check Box in order to send tips for your store location'
+        return render_template('export.html',msg=msg)
+
     msg='Success! Check out your Google Sheet for updated records'
     return render_template('success.html',msg=msg)

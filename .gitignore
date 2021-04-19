@@ -2,3 +2,5 @@
 __pycache__
 token.pickle
 .DS_Store
+.env
+client_secret.json

@@ -12,41 +12,48 @@ auth_bp = Blueprint(
 )
 @auth_bp.route('/signup',methods=["GET","POST"])
 def signup():
-
+    users = User.query.all()
     if request.method == "GET":
-        users = User.query.all()
         return render_template('signup.html',users=users)
     else:
         email = request.form.get('email')
         name = request.form.get('name')
         password = request.form.get('password')
 
-        user = User.query.filter_by(email=email).first()
+        if email == '' or name == '' or password == '':
+            msg = 'Please fill out form completely'
+            return render_template('signup.html',msg=msg,users=users)
+        else:
+            user = User.query.filter_by(email=email).first()
 
-        if user:
-            flash('Email address already exists')
-            return redirect(url_for('auth_bp.signup'))
-        
-        new_user = User(email=email,name=name,password=generate_password_hash(password, method='sha256'))
-        
-        db.session.add(new_user)
-        db.session.commit()
 
-        
-        return redirect(url_for('auth_bp.login'))
+            if user:
+                flash('Email address already exists')
+                return redirect(url_for('auth_bp.signup'))
+            
+            new_user = User(email=email,name=name,password=generate_password_hash(password, method='sha256'))
+            
+            db.session.add(new_user)
+            db.session.commit()
+
+            
+            return redirect(url_for('auth_bp.login'))
 
 @auth_bp.route('/login',methods=['GET','POST'])
 def login():
     if request.method == "GET":
-        #create admin upon app creation
-        if User.query.one_or_none() == None:
-            email = 'johncrowley547@gmail.com'
-            name = 'admin'
-            password = 'admin'
-            admin = True
-            our_admin = User(email=email,name=name,password=generate_password_hash(password, method='sha256'),admin=admin)
-            db.session.add(our_admin)
-            db.session.commit()
+        try:
+            #create admin upon app creation
+            if User.query.one_or_none() == None:
+                email = 'johncrowley547@gmail.com'
+                name = 'admin'
+                password = 'admin'
+                admin = True
+                our_admin = User(email=email,name=name,password=generate_password_hash(password, method='sha256'),admin=admin)
+                db.session.add(our_admin)
+                db.session.commit()
+        except:
+            pass
             
         return render_template('login.html')
 

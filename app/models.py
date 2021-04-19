@@ -2,6 +2,21 @@ from . import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
+class Crews(db.Model):
+    """CREW JOIN TABLE"""
+
+    __tablename__ = 'Crews'
+    id = db.Column(
+        db.Integer,
+        primary_key = True
+    )
+    created_at = db.Column(
+        db.DateTime,
+        nullable = False
+    )
+    def __repr__(self):
+        return '<Crews {}>'.format(self.created_at)
+
 class User(UserMixin, db.Model):
     """USER MODEL"""
 
@@ -92,15 +107,12 @@ class tips(db.Model):
         db.Integer,
         nullable=False,
         )
-    created_at = db.Column(
-        db.DateTime,
-        nullable=False)
-    
     time = db.Column(
         db.String(64),
         nullable=True
     )
-    
-
+    crew_id = db.Column(
+        db.Integer
+    )
     def __repr__(self):
         return "<employee {}>".format(self.employee_id)

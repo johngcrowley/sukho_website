@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="mb-3">
-    <h3 class="title">New Manager</h3>
+    <h4 class="title">New Manager</h4>
     {% with messages = get_flashed_messages() %}
     {% if messages[0] %}
     <div>
@@ -32,25 +32,29 @@
     </form>
 <br>
 <br>
-    <h3 class="title">Managers / Admin</h3>
-    {% for user in users %}
-    {% if user.name != '' %}
-    <table>
+    <h4 class="title">Managers / Admin</h4>
+    <table class=table style=width:100%>
+        <thead>
         <tr>
-            <td autofocus class="form-control">{{user.name}}</td>
+            <th>Manager</th>
+            <th>Email</th>
+            {% if current_user.admin != True %}
+            <th>Not Right?</th>
+            {% endif %}
         </tr>
-        <br>
-        <br>
+        </thead>
+        <tbody>
+        {% for user in users %}
         <tr>
-            <td autofocus class="form-control">{{user.email}}</td>
+            <td>{{user.name}}</td>
+            <td>{{user.email}}</td>
+            {% if current_user.admin != True %}
+            <td><a class="btn btn-primary" href="/update/{{user.id}}">Update</a></td>
+            {% endif %}
         </tr>
-        <br>
-        <tr>
-           <td><a class="btn btn-primary" href="/update/{{user.id}}">Update</a></td> 
-        </tr>
+        {% endfor %}
+        </tbody>
     </table>  
-    <br>
-    {% endif %}  
-    {% endfor %}
+    <br> 
 </div>
 {% endblock %}
