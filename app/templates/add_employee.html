@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<form action="/add_employee" method="post">
+{% if msg %} 
+<p class="message">{{ msg }}</p>
+{% endif %} 
+<label for="name">Name</label>
+<div>
+<input autocomplete="off" autofocus class="form-control" name="name" placeholder=" " type="text">
+</div>
+<label for="name">Email</label>
+<div>
+<input autocomplete="off" autofocus class="form-control" name="email" placeholder=" " type="text">
+</div>
+<br>
+<select name="pos" class="form-control">
+            <option value="" disabled selected autofocus class="form-control">Position</option><br>
+            {% for pos in positions %}
+            <option value="{{ pos }}">{{ pos }}</option>
+            {% endfor %}
+</select><br>
+<button class="btn btn-primary" type="submit">Submit</button>
+</form>
+
+
+{% endblock %}
+      
