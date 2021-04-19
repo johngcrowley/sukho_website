@@ -47,7 +47,9 @@ def login():
             our_admin = User(email=email,name=name,password=generate_password_hash(password, method='sha256'),admin=admin)
             db.session.add(our_admin)
             db.session.commit()
-        return render_template('login.html')
+            return render_template('login.html')
+        else:
+            return redirect(url_for('main_bp.index'))
     else:
         email = request.form.get('email')
         password = request.form.get('password')
