@@ -30,7 +30,7 @@ def create_app():
     with app.app_context():
         from . import auth
         from . import routes
-        from .models import Users
+        from .models import User
 
         @login_manager.user_loader
         def load_user(user_id):
