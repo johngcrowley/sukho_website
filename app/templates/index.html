@@ -1,29 +1,42 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <div class="form-group">
+  <div class="mb-3">>
+    <h2 class="title">
+      Welcome, {{ current_user.name }}!
+    </h2>
     {% if msg %}
     <h1>{{msg}}</h1>
     {% endif %}
     {% if not message %}
     {% if current_user.is_authenticated %}
-    <h1 class="title">
-      Welcome
-    </h1>
-      <h5>Employees</h5>
+    <br>
+    <br>
+      <h4 class="title">Employees</h4>
+      <br>
+        <table class=table style=width:100%>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Position</th>
+            {% if current_user.admin != True %}
+            <th>Remove</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
         {% for employee in employees %}
-        <ul id="employee.name" style="list-style-type: none;">
-          <li>
-            <span class="field-value">{{ employee.name }}</span>
-          </li>
-          <li>
-            <span class="field-value">{{ employee.email }}</span>
-          </li>
-          <li>
-            <span class="field-value">{{ employee.position }}</span>
-          </li>
-        </ul>
+        <tr>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.email }}</td>
+            <td>{{ employee.position }}</td>
+            <td><a class="btn btn-primary" href="/update_emp/{{employee.id}}">remove</a></td>
+        </tr>
         {% endfor %}
+        </tbody>
+    </table>  
+    <br> 
     {% endif %}
     {% endif %}
   </div>

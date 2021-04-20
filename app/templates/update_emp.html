@@ -1,0 +1,23 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <h3 class="title">Are you sure you want to delete {{emp_to_update.name}} and all their data?</h3>
+    <div class="mb-3">
+        {% if msg %}
+        <h5>{{msg}}</h5>
+        {% endif %}
+        <form method="POST" action="/update_emp/{{emp_to_update.id}}">
+        <div>
+            <button class="btn btn-primary" type="submit">Delete</button>
+        </div>
+        </form>
+        <form method="GET" action="/">
+            <div>
+                <button class="btn btn-primary" type="submit">Go Back</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -35,6 +35,29 @@ def index():
     return render_template('index.html',employees=employees)
 
 @login_required
+@main_bp.route('/update_emp/<int:id>',methods=["GET","POST"])
+def update_emp(id):
+    emp_to_update = employee.query.filter(employee.id == id).first()
+    
+    if request.method == "POST":
+        employee.query.filter(employee.id == id).delete()
+        tips.query.filter(tips.employee_id == id).delete()
+        db.session.commit()
+        return redirect('/')
+
+    else:
+        return render_template('update_emp.html',emp_to_update=emp_to_update)
+
+@login_required
+@main_bp.route('/redo/<int:id>',methods=["POST"])
+def redo(id):
+    tips.query.filter(tips.crew_id==id).delete()
+    Crews.query.filter(Crews.id==id).delete()
+    db.session.commit()
+    return redirect('/create')
+
+
+@login_required
 @main_bp.route('/update/<int:id>',methods=["GET","POST"])
 def update(id):
     name_to_update = User.query.filter(User.id == id).first()
@@ -105,11 +128,12 @@ def create():
     if request.method == "GET":    
         return render_template('shift.html')
     else:
-        fields = int(request.form.get("number"))
-        if fields == 0 or fields == '':
+        number = request.form.get("number")
+        if number == 0 or number == '' or number.isdigit() == False:
             msg='please enter a number'
             return render_template('shift.html',msg=msg)
         else:
+            fields = int(number)
             employees = employee.query.all()
             location = ['Marigny','Uptown']
             times = ['Lunch','Dinner']
@@ -209,15 +233,15 @@ def newshift():
     
     
     tipout = tips.query.filter(tips.crew_id==crew_id.id).all()
+    c_id = crew_id.id
 
 
-    return render_template('success.html',tipout=tipout,location=location)
+    return render_template('success.html',tipout=tipout,location=location,c_id=c_id)
 
 @login_required       
-@main_bp.route('/export',methods=["POST"])
-def export():
-
-    loc = request.form.get("location")
+@main_bp.route('/export/<location>',methods=["POST"])
+def export(location):
+    loc = location
     dataframe = pd.read_sql('''
     SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
     JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
@@ -245,8 +269,6 @@ def export():
         uptown_df = df_prep(uptown)
         d2g.upload(uptown_df, spreadsheet_key, wks_name[1], credentials=creds, row_names=True)
     else:
-        msg = 'Please Check Box in order to send tips for your store location'
-        return render_template('export.html',msg=msg)
-
-    msg='Success! Check out your Google Sheet for updated records'
+        return redirect('/')
+    msg='Success! \n\n Check out your Google Sheet for updated records'
     return render_template('success.html',msg=msg)

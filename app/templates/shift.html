@@ -5,14 +5,16 @@
 {% if msg %}
 <h5 class="message">{{ msg }}</h5>
 {% endif %}
-
+<div class=form-backdrop>
 <form action="/create" method="post">
-  <div class="form-group">
+  <div class="mb-3">
     <h5 for="tips">How many employees this shift?</h5>
     <input autocomplete="off" autofocus class="form-control" name="number" placeholder=" " type="text">
-  </div>
+    <br>
   <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
 </form>
+</div>
 {% endblock %}
 
      
