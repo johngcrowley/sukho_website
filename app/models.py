@@ -115,4 +115,4 @@ class tips(db.Model):
         db.Integer
     )
     def __repr__(self):
-        return "<employee {}>".format(self.employee_id)
+        return "<tips {}>".format(self.employee_id)
