@@ -1,6 +1,7 @@
 .vscode
+.env
+client_secret.json
 __pycache__
 token.pickle
 .DS_Store
-.env
-client_secret.json
+
