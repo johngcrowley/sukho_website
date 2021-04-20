@@ -2,10 +2,10 @@
 
 {% block content %}
 
-{% if message %}
-<h5 class="message">{{ message }}</h5>
-{% endif %}
-
+{% if msg %} 
+<p class="message">{{ msg }}</p>
+{% endif %} 
+<div class=form-backdrop>
 <form action="/newshift" method="POST">
   <div class="mb-3">
     <h4 for="employee">Please choose both location/shift</h4>
@@ -44,5 +44,6 @@
   <br>
   <button class="btn btn-primary" type="submit">Submit</button>  
 </form>
+</div>
 
 {% endblock %}

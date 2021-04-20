@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
+<div class=form-backdrop>
 <form action="/add_employee" method="post">
 <div class="mb-3">
 {% if msg %} 
@@ -28,7 +28,7 @@
 <button class="btn btn-primary" type="submit">Submit</button>
 </div>
 </form>
-
+</div>
 
 {% endblock %}
       
