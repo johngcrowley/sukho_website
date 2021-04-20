@@ -113,7 +113,7 @@ class tips(db.Model):
     )
     crew_id = db.Column(
         db.Integer,
-        nullable=False;
+        nullable=False
     )
     def __repr__(self):
         return "<tips {}>".format(self.employee_id)
