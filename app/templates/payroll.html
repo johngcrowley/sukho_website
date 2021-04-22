@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="notification is-danger">
+        {{ messages[0] }}
+    </div>
+{% endif %}
+{% endwith %}
+
+<form action="/payroll" method="POST">
+  <div class="mb-3">
+    <h5 for="date">Enter the start date of this pay period</h5>
+    <input autocomplete="off" autofocus class="form-control" name="date" placeholder="mm/dd/yyyy" type="text">
+    <br>
+  <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
+</form>
+
+{% endblock %}

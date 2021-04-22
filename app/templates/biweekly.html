@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<table class=table style=width:100%>
+    {% for k,v in df1.iterrows() %}
+<thead>
+    <tr>
+        <th>k</th>
+    </tr>
+</thead>
+<tbody>
+        <tr>
+            <td> {{ v }}</td>
+        </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

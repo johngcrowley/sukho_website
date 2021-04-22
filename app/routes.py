@@ -3,7 +3,7 @@ from flask import current_app as app
 from .models import db, employee, tips, User, Crews
 import pandas as pd
 from df2gspread import df2gspread as d2g
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from sqlalchemy.sql import func
 from sqlalchemy import desc
 import config
@@ -11,6 +11,7 @@ from flask import Blueprint, redirect, request, render_template, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 import math
+import re
 
 
 
@@ -238,6 +239,18 @@ def newshift():
 
     return render_template('success.html',tipout=tipout,location=location,c_id=c_id)
 
+def df_prep(df):
+    cols = df.columns
+    df.drop([cols[0],cols[1]], axis=1, inplace=True)
+    df['date'] = pd.to_datetime(df['date'])
+    df['tips'] = round(df.tips.astype(int))
+    df['day'] = df['date'].dt.day_name().astype(str)
+    df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
+    df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
+    df.fillna('-',inplace=True)
+    df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    return df
+
 @login_required       
 @main_bp.route('/export/<location>',methods=["POST"])
 def export(location):
@@ -248,23 +261,13 @@ def export(location):
 
     dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
 
-    def df_prep(df):
-        cols = df.columns
-        df.drop([cols[0],cols[1]], axis=1, inplace=True)
-        df['date'] = pd.to_datetime(df['date'])
-        df['tips'] = round(df.tips.astype(int))
-        df['day'] = df['date'].dt.day_name().astype(str)
-        df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
-        df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
-        df.fillna('-',inplace=True)
-        df = df.pivot_table(index="name",columns=["Date"],values="tips")
-        return df
-
     if loc == 'Marigny':
+
         marigny = dataframe.loc[dataframe['location'] == 'Marigny']
         marigny_df = df_prep(marigny)
         d2g.upload(marigny_df, spreadsheet_key, wks_name[0], credentials=creds, row_names=True)
     elif loc == 'Uptown':
+
         uptown = dataframe.loc[dataframe['location'] == 'Uptown']
         uptown_df = df_prep(uptown)
         d2g.upload(uptown_df, spreadsheet_key, wks_name[1], credentials=creds, row_names=True)
@@ -272,3 +275,35 @@ def export(location):
         return redirect('/')
     msg='Success! \n\n Check out your Google Sheet for updated records'
     return render_template('success.html',msg=msg)
+
+@login_required
+@main_bp.route('/payroll',methods=["GET","POST"])
+def payroll():
+    if request.method == "GET":
+        return render_template('payroll.html')
+    else:
+        input_date = request.form.get("date")
+        patt = re.compile('([0-9]{2}/[0-9]{2}/[0-9]{4})')
+        print(patt)
+        if re.match(patt,input_date) == False:
+            flash('Please enter a valid date in mm/dd/yyyy format')
+            return render_template('payroll.html')
+        else:
+            month,day,year = input_date.split('/')
+            start = dt(int(year),int(month),int(day)).date()
+            biweek = pd.date_range(start, start + timedelta(13))
+
+            dataframe = pd.read_sql('''
+            SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
+            JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+
+            dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
+            
+            df = dataframe.pivot_table('tips','name','date')
+
+            df1 = df[biweek]
+
+            df1['gross'] = df1.sum(axis=1)
+            df1['claimed'] = df1['gross'] * .60
+
+            return render_template('biweekly.html',df1=df1)

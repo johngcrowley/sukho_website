@@ -111,13 +111,14 @@ footer {
                     {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('main_bp.index') }}">Home</a></li>
                     <li><a href="{{ url_for('main_bp.create') }}">New Shift</a></li>
-                    <li><a href="{{ url_for('main_bp.add_employee') }}">New Employee</a></li>
+                    <li><a href="{{ url_for('main_bp.add_employee') }}">Employees</a></li>
+                    <li><a href="{{ url_for('main_bp.payroll') }}">Payroll</a></li>
                     {% endif %}
                     {% if not current_user.is_authenticated %}
                     <li><a href="{{ url_for('auth_bp.login') }}">Login</a></li>
                     {% endif %}
                     {% if current_user.admin == True %}
-                    <li><a href="{{ url_for('auth_bp.signup') }}">Manage Profiles</a></li>
+                    <li><a href="{{ url_for('auth_bp.signup') }}">Managers</a></li>
                     {% endif %}
                     {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('auth_bp.logout') }}">Logout</a></li>
