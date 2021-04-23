@@ -250,10 +250,23 @@ def df_prep(df):
     return df
            
 def tip_out_prep(df):
+    df['tips'] = round(df['tips'])
     df['day'] = df['date'].dt.day_name().astype(str)
     df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
+    df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    return df
+
+def prep_payroll():
+    dataframe = pd.read_sql('''
+        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
+        tips.tips, "Crews".created_at FROM "Crews"
+        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+
+    dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
+
+    df = df_prep(dataframe)
     df = df.pivot_table('tips','name','date')
     return df
 
@@ -287,19 +300,12 @@ def export(location):
 @login_required
 @main_bp.route('/payroll',methods=["GET","POST"])
 def payroll():
-    dataframe = pd.read_sql('''
-        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
-        tips.tips, "Crews".created_at FROM "Crews"
-        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
-
-    dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
 
     if request.method == "GET":
         return render_template('payroll.html')
     else:
         s = request.form.get("date")
-        df = df_prep(dataframe)
-        df = df.pivot_table('tips','name','date')
+
         patt = re.compile('\d{2}[-/]\d{2}[-/]\d{2}')
 
         if re.findall(patt,s) == []:
@@ -312,18 +318,19 @@ def payroll():
                 start = pd.to_datetime(s).date()
                 print(start)
                 try:
-                    pay_period = pd.date_range(start, start + timedelta(3))
+                    payroll_df = prep_payroll()
+                    pay_period = pd.date_range(start, start + timedelta(13))
                     print(pay_period)
-                    df1 = df[[pay_period[0],pay_period[3]]].copy()
+                    df1 = payroll_df[pay_period].copy()
                     print('df1 made')
-                    df1['gross'] = df1.sum(axis=1)
-                    df1['claimed'] = df1['gross'] * .60
+                    df1['gross'] = round(df1.sum(axis=1))
+                    df1['claimed'] = round(df1['gross'] * .60)
                     df2 = df1[['gross','claimed']]
-                    period = f'For the Pay period of {start} until {pay_period[-1].date()}'.format(start,pay_period)
+                    period = f'{start} - {pay_period[-1].date()}'.format(start,pay_period)
                     return render_template('biweekly.html',df2=df2,period=period)
                 except:
                     print('is datetime, but something off with ranges')
-                    msg = 'is datetime, but something off with ranges'
+                    msg = 'you don\'t have enough data yet to pull a 2 week payperiod'
                     return render_template('payroll.html',msg=msg)
             except:
                 #if they a sneaky one and try to put in random nubmers in format
