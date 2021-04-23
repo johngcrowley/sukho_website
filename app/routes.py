@@ -309,27 +309,21 @@ def payroll():
         patt = re.compile('\d{2}[-/]\d{2}[-/]\d{2}')
 
         if re.findall(patt,s) == []:
-            print('you fucked up')
             msg='Not a valid date, try agin'
             return render_template('payroll.html',msg=msg)
         else:
-            print('gucci')
             try:
                 start = pd.to_datetime(s).date()
-                print(start)
                 try:
                     payroll_df = prep_payroll()
                     pay_period = pd.date_range(start, start + timedelta(13))
-                    print(pay_period)
                     df1 = payroll_df[pay_period].copy()
-                    print('df1 made')
                     df1['gross'] = round(df1.sum(axis=1))
                     df1['claimed'] = round(df1['gross'] * .60)
                     df2 = df1[['gross','claimed']]
                     period = f'{start} - {pay_period[-1].date()}'.format(start,pay_period)
                     return render_template('biweekly.html',df2=df2,period=period)
                 except:
-                    print('is datetime, but something off with ranges')
                     msg = 'you don\'t have enough data yet to pull a 2 week payperiod'
                     return render_template('payroll.html',msg=msg)
             except:
