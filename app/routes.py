@@ -241,10 +241,10 @@ def newshift():
 
 #Helper Functions for Last 2 Routes for Tip-Out Excel file and Payroll viz
 
+
 def df_prep(df):
     cols = df.columns
-    df.drop(cols[0:6],axis=1,inplace=True)
-    df.drop('created_at',axis=1,inplace=True)
+    df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
     df['tips'] = round(df.tips.astype(int))
     return df
