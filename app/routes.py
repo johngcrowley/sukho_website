@@ -239,37 +239,45 @@ def newshift():
 
     return render_template('success.html',tipout=tipout,location=location,c_id=c_id)
 
+#Helper Functions for Last 2 Routes for Tip-Out Excel file and Payroll viz
+
 def df_prep(df):
     cols = df.columns
-    df.drop([cols[0],cols[1]], axis=1, inplace=True)
+    df.drop(cols[0:6],axis=1,inplace=True)
+    df.drop('created_at',axis=1,inplace=True)
     df['date'] = pd.to_datetime(df['date'])
     df['tips'] = round(df.tips.astype(int))
+    return df
+           
+def tip_out_prep(df):
     df['day'] = df['date'].dt.day_name().astype(str)
     df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
-    df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    df = df.pivot_table('tips','name','date')
     return df
 
 @login_required       
 @main_bp.route('/export/<location>',methods=["POST"])
 def export(location):
-    loc = location
     dataframe = pd.read_sql('''
-    SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
-    JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
+        tips.tips, "Crews".created_at FROM "Crews"
+        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
 
     dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
 
-    if loc == 'Marigny':
+    loc = location
 
+    if loc == 'Marigny':
         marigny = dataframe.loc[dataframe['location'] == 'Marigny']
         marigny_df = df_prep(marigny)
+        marigny_df = tip_out_prep(marigny_df)
         d2g.upload(marigny_df, spreadsheet_key, wks_name[0], credentials=creds, row_names=True)
     elif loc == 'Uptown':
-
         uptown = dataframe.loc[dataframe['location'] == 'Uptown']
         uptown_df = df_prep(uptown)
+        uptown_df = tip_out_prep(uptown_df)
         d2g.upload(uptown_df, spreadsheet_key, wks_name[1], credentials=creds, row_names=True)
     else:
         return redirect('/')
@@ -279,31 +287,49 @@ def export(location):
 @login_required
 @main_bp.route('/payroll',methods=["GET","POST"])
 def payroll():
+    dataframe = pd.read_sql('''
+        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
+        tips.tips, "Crews".created_at FROM "Crews"
+        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+
+    dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
+
     if request.method == "GET":
         return render_template('payroll.html')
     else:
-        input_date = request.form.get("date")
-        patt = re.compile('([0-9]{2}/[0-9]{2}/[0-9]{4})')
-        print(patt)
-        if re.match(patt,input_date) == False:
-            flash('Please enter a valid date in mm/dd/yyyy format')
-            return render_template('payroll.html')
+        s = request.form.get("date")
+        df = df_prep(dataframe)
+        df = df.pivot_table('tips','name','date')
+        patt = re.compile('\d{2}[-/]\d{2}[-/]\d{2}')
+
+        if re.findall(patt,s) == []:
+            print('you fucked up')
+            msg='Not a valid date, try agin'
+            return render_template('payroll.html',msg=msg)
         else:
-            month,day,year = input_date.split('/')
-            start = dt(int(year),int(month),int(day)).date()
-            biweek = pd.date_range(start, start + timedelta(13))
+            print('gucci')
+            try:
+                start = pd.to_datetime(s).date()
+                print(start)
+                try:
+                    pay_period = pd.date_range(start, start + timedelta(3))
+                    print(pay_period)
+                    df1 = df[[pay_period[0],pay_period[3]]].copy()
+                    print('df1 made')
+                    df1['gross'] = df1.sum(axis=1)
+                    df1['claimed'] = df1['gross'] * .60
+                    df2 = df1[['gross','claimed']]
+                    period = f'For the Pay period of {start} until {pay_period[-1].date()}'.format(start,pay_period)
+                    return render_template('biweekly.html',df2=df2,period=period)
+                except:
+                    print('is datetime, but something off with ranges')
+                    msg = 'is datetime, but something off with ranges'
+                    return render_template('payroll.html',msg=msg)
+            except:
+                #if they a sneaky one and try to put in random nubmers in format
+                msg = 'valid format, but not a valid date, good try.'
+                return render_template('payroll.html',msg=msg)
 
-            dataframe = pd.read_sql('''
-            SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
-            JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+    
 
-            dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
-            
-            df = dataframe.pivot_table('tips','name','date')
 
-            df1 = df[biweek]
-
-            df1['gross'] = df1.sum(axis=1)
-            df1['claimed'] = df1['gross'] * .60
-
-            return render_template('biweekly.html',df1=df1)

@@ -1,20 +1,27 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
+<div class="payperiod">
+<div class="mb-3">
+<h4>{{ period }}</h4>
 <table class=table style=width:100%>
-    {% for k,v in df1.iterrows() %}
 <thead>
     <tr>
-        <th>k</th>
+        <th>Name</th>
+        <th>Gross</th>
+        <th>CLaimed</th>
     </tr>
 </thead>
 <tbody>
+    {% for _, row in df2.iterrows() %}
         <tr>
-            <td> {{ v }}</td>
+            <td> {{ row.index }}</td>
+            <td> {{ row.gross }}</td>
+            <td> {{ row.claimed }}</td>
         </tr>
     {% endfor %}
 </tbody>
 </table>
-
+</div>
+</div>
 {% endblock %}

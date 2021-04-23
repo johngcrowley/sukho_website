@@ -1,0 +1,11 @@
+,employee_id,location,time,crew_id,position,name,tips,created_at,date
+0,2,Marigny,Lunch,5,Server,Bill,21,2021-04-20 14:02:16.752555,2021-04-20
+1,2,Marigny,Lunch,7,Server,Bill,13,2021-04-20 14:06:38.406293,2021-04-20
+2,2,Marigny,Lunch,8,Server,Bill,13,2021-04-20 14:12:11.974009,2021-04-20
+3,2,Marigny,Lunch,9,Server,Bill,13,2021-04-20 14:12:32.228130,2021-04-20
+5,2,Marigny,Lunch,11,Server,Bill,11,2021-04-20 14:16:35.770619,2021-04-20
+9,2,Marigny,Lunch,15,Server,Bill,105,2021-04-20 14:25:49.163290,2021-04-20
+12,2,Marigny,Lunch,18,Server,Bill,12,2021-04-20 14:33:16.031778,2021-04-20
+15,4,Marigny,Lunch,21,Server,bloosh,127,2021-04-23 09:35:13.747793,2021-04-23
+16,3,Marigny,Lunch,21,Server,joke,127,2021-04-23 09:35:13.747793,2021-04-23
+17,2,Marigny,Lunch,21,Server,Bill,127,2021-04-23 09:35:13.747793,2021-04-23
