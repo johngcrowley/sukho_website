@@ -3,7 +3,7 @@ from flask import current_app as app
 from .models import db, employee, tips, User, Crews
 import pandas as pd
 from df2gspread import df2gspread as d2g
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from sqlalchemy.sql import func
 from sqlalchemy import desc
 import config
@@ -11,6 +11,7 @@ from flask import Blueprint, redirect, request, render_template, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 import math
+import re
 
 
 
@@ -238,37 +239,98 @@ def newshift():
 
     return render_template('success.html',tipout=tipout,location=location,c_id=c_id)
 
-@login_required       
-@main_bp.route('/export/<location>',methods=["POST"])
-def export(location):
-    loc = location
+#Helper Functions for Last 2 Routes for Tip-Out Excel file and Payroll viz
+
+
+def df_prep(df):
+    cols = df.columns
+    df.drop([cols[0],cols[1]], axis=1, inplace=True)
+    df['date'] = pd.to_datetime(df['date'])
+    df['tips'] = round(df.tips.astype(int))
+    return df
+           
+def tip_out_prep(df):
+    df['tips'] = round(df['tips'])
+    df['day'] = df['date'].dt.day_name().astype(str)
+    df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
+    df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
+    df.fillna('-',inplace=True)
+    df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    return df
+
+def prep_payroll():
     dataframe = pd.read_sql('''
-    SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, tips.tips, "Crews".created_at FROM "Crews"
-    JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
+        tips.tips, "Crews".created_at FROM "Crews"
+        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
 
     dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
 
-    def df_prep(df):
-        cols = df.columns
-        df.drop([cols[0],cols[1]], axis=1, inplace=True)
-        df['date'] = pd.to_datetime(df['date'])
-        df['tips'] = round(df.tips.astype(int))
-        df['day'] = df['date'].dt.day_name().astype(str)
-        df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
-        df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
-        df.fillna('-',inplace=True)
-        df = df.pivot_table(index="name",columns=["Date"],values="tips")
-        return df
+    df = df_prep(dataframe)
+    df = df.pivot_table('tips','name','date')
+    return df
+
+@login_required       
+@main_bp.route('/export/<location>',methods=["POST"])
+def export(location):
+    dataframe = pd.read_sql('''
+        SELECT tips.employee_id, tips.location, tips.time, tips.crew_id, employee.position, employee.name, 
+        tips.tips, "Crews".created_at FROM "Crews"
+        JOIN tips ON tips.crew_id="Crews".id JOIN employee ON employee.id=tips.employee_id''',db.session.bind)
+
+    dataframe['date'] = pd.to_datetime(dataframe['created_at']).dt.date
+
+    loc = location
 
     if loc == 'Marigny':
         marigny = dataframe.loc[dataframe['location'] == 'Marigny']
         marigny_df = df_prep(marigny)
+        marigny_df = tip_out_prep(marigny_df)
         d2g.upload(marigny_df, spreadsheet_key, wks_name[0], credentials=creds, row_names=True)
     elif loc == 'Uptown':
         uptown = dataframe.loc[dataframe['location'] == 'Uptown']
         uptown_df = df_prep(uptown)
+        uptown_df = tip_out_prep(uptown_df)
         d2g.upload(uptown_df, spreadsheet_key, wks_name[1], credentials=creds, row_names=True)
     else:
         return redirect('/')
     msg='Success! \n\n Check out your Google Sheet for updated records'
     return render_template('success.html',msg=msg)
+
+@login_required
+@main_bp.route('/payroll',methods=["GET","POST"])
+def payroll():
+
+    if request.method == "GET":
+        return render_template('payroll.html')
+    else:
+        s = request.form.get("date")
+
+        patt = re.compile('\d{2}[-/]\d{2}[-/]\d{2}')
+
+        if re.findall(patt,s) == []:
+            msg='Not a valid date, try agin'
+            return render_template('payroll.html',msg=msg)
+        else:
+            try:
+                start = pd.to_datetime(s).date()
+                try:
+                    payroll_df = prep_payroll()
+                    pay_period = pd.date_range(start, start + timedelta(13))
+                    df1 = payroll_df[pay_period].copy()
+                    df1['gross'] = round(df1.sum(axis=1))
+                    df1['claimed'] = round(df1['gross'] * .60)
+                    df2 = df1[['gross','claimed']]
+                    period = f'{start} - {pay_period[-1].date()}'.format(start,pay_period)
+                    return render_template('biweekly.html',df2=df2,period=period)
+                except:
+                    msg = 'you don\'t have enough data yet to pull a 2 week payperiod'
+                    return render_template('payroll.html',msg=msg)
+            except:
+                #if they a sneaky one and try to put in random nubmers in format
+                msg = 'valid format, but not a valid date, good try.'
+                return render_template('payroll.html',msg=msg)
+
+    
+
+

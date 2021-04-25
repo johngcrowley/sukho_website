@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+
+
+<form action="/payroll" method="POST">
+  <div class="mb-3">
+    {% if msg %} 
+    <p class="message">{{ msg }}</p>
+    {% endif %} 
+    <h5 for="date">Enter the start date of this pay period</h5>
+    <input autocomplete="off" autofocus class="form-control" name="date" placeholder="mm/dd/yyyy" type="text">
+    <br>
+  <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
+</form>
+
+{% endblock %}

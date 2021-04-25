@@ -26,7 +26,6 @@ def signup():
         else:
             user = User.query.filter_by(email=email).first()
 
-
             if user:
                 flash('Email address already exists')
                 return redirect(url_for('auth_bp.signup'))
