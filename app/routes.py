@@ -111,8 +111,8 @@ def add_employee():
                     email = email,
                     position= emp
                     )
-                db.session.add(new_emp)
-                db.session.commit()
+                    db.session.add(new_emp)
+                    db.session.commit()
                 return render_template('add_employee.html',positions=positions)
         except:
             return render_template('add_employee.html',positions=positions)
