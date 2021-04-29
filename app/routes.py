@@ -266,7 +266,6 @@ def df_prep(df):
     cols = df.columns
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values(by='Date',ascending=False)
     df['tips'] = round(df.tips.astype(int))
     return df
            
