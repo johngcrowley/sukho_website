@@ -266,6 +266,7 @@ def df_prep(df):
     cols = df.columns
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
+    df = df.sort_values(by='Date',ascending=False)
     df['tips'] = round(df.tips.astype(int))
     return df
            
@@ -275,7 +276,6 @@ def tip_out_prep(df):
     df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
-    df = df.sort_values(by='Date',ascending=False)
     df = df.pivot_table(index="name",columns=["Date"],values="tips")
     return df
 
