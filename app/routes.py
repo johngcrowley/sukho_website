@@ -93,7 +93,6 @@ def update(id):
 
 @login_required
 @main_bp.route('/add_employee',methods=["GET","POST"])
-# @login_required
 def add_employee():
     positions = ['Expo','Bartender','Server']
     
@@ -113,7 +112,8 @@ def add_employee():
                     )
                     db.session.add(new_emp)
                     db.session.commit()
-                return render_template('add_employee.html',positions=positions)
+            
+            return render_template('add_employee.html',positions=positions)
         except:
             return render_template('add_employee.html',positions=positions)
     else:
@@ -275,6 +275,7 @@ def tip_out_prep(df):
     df['day'] = df['day'].str.replace(r'(\w+day\b)',lambda x: x.groups()[0][:3])
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
+    df = df.sort_values(by='Date',ascending=False)
     df = df.pivot_table(index="name",columns=["Date"],values="tips")
     return df
 
