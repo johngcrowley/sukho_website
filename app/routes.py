@@ -173,6 +173,9 @@ def newshift():
     time = request.form.get("time")
     date = request.form.get("date")
 
+    date = pd.to_datetime(date).date()
+    print(date)
+
     new_crew = Crews(
         created_at = date 
         )
@@ -203,8 +206,8 @@ def newshift():
         #             whom = employee.query.filter(
         #                 employee.name == key).first()
         #             to_email.append(whom.email)
-        crew_id = Crews.query.order_by(desc(Crews.created_at)).limit(1).first()
-
+        crew_id = Crews.query.filter(Crews.created_at==date).first()
+        print(crew_id)
         for name in names:
             person = employee.query.filter(employee.name == name).first()
             persons_tips = tip_split(tipz)[0]
@@ -253,7 +256,7 @@ def newshift():
         return render_template('shift.html',msg=msg)
     
     
-    tipout = tips.query.filter(tips.crew_id==crew_id.id).all()
+    tipout = tips.query.filter(tips.crew_id==crew_id.id,tips.location==location).all()
     c_id = crew_id.id
 
 
@@ -266,6 +269,7 @@ def df_prep(df):
     cols = df.columns
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
+    df = df.sort_values(by='date',ascending=False)
     df['tips'] = round(df.tips.astype(int))
     return df
            
