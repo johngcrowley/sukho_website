@@ -273,6 +273,7 @@ def df_prep(df):
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
     df['tips'] = round(df.tips.astype(int))
+    print('yoyoyoooo!!!')
     return df
            
 def tip_out_prep(df):
