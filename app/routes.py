@@ -30,10 +30,30 @@ main_bp = Blueprint(
 @main_bp.route('/')
 def index():
     try:
-        employees = employee.query.all()
+        if employee.query.count() == 1 or employee.query.count() == 0:
+            boh_positions = ['Kitchen','Dish']
+            for emp in boh_positions:
+                if employee.query.filter(employee.position == emp).count() == 0:
+                    name = 'BOH_' + emp
+                    email = emp + '@gmail.com'
+                    position = emp
+                    
+                    new_emp = employee(
+                    name = name,
+                    email = email,
+                    position= emp
+                    )
+                    db.session.add(new_emp)
+                    db.session.commit()
+                else:
+                    continue
+            
+        return render_template('index.html',employees=employees)
     except:
-        employees = 'please add employees to the database'
-    return render_template('index.html',employees=employees)
+        employees = employee.query.all()
+        return render_template('index.html',employees=employees)
+
+
 
 @login_required
 @main_bp.route('/update_emp/<int:id>',methods=["GET","POST"])
@@ -73,7 +93,8 @@ def update(id):
         name_to_update.password = generate_password_hash(password[0], method='sha256')
 
         delete = request.form.get('delete')
-        if delete != '':
+        
+        if delete != None:
             User.query.filter(User.id == id).delete()
 
         if password[0] != password[1]:
@@ -97,25 +118,7 @@ def add_employee():
     positions = ['Expo','Bartender','Server']
     
     if request.method == "GET":
-        try:
-            if employee.query.one_or_none() == None:
-                boh_positions = ['Kitchen','Dish']
-                for emp in boh_positions:
-                    name = 'BOH_' + emp
-                    email = emp + '@gmail.com'
-                    position = emp
-                    
-                    new_emp = employee(
-                    name = name,
-                    email = email,
-                    position= emp
-                    )
-                    db.session.add(new_emp)
-                    db.session.commit()
-            
-            return render_template('add_employee.html',positions=positions)
-        except:
-            return render_template('add_employee.html',positions=positions)
+        return render_template('add_employee.html',positions=positions)
     else:
         name = request.form.get("name")
         email = request.form.get("email")
