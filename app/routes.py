@@ -272,7 +272,6 @@ def df_prep(df):
     cols = df.columns
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values(by='date',ascending=False)
     df['tips'] = round(df.tips.astype(int))
     return df
            
@@ -283,6 +282,7 @@ def tip_out_prep(df):
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
     df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    df = df.iloc[:, ::-1]
     return df
 
 def prep_payroll():
