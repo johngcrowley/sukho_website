@@ -43,7 +43,7 @@ def login():
     if request.method == "GET":
         try:
             #create admin upon app creation
-            if User.query.one_or_none() == None :
+            if User.query.one_or_none() == None:
                 email = 'johncrowley547@gmail.com'
                 name = 'admin'
                 password = 'admin'
