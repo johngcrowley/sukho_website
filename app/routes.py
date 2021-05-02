@@ -73,7 +73,7 @@ def update(id):
 
         delete = request.form.get('delete')
         
-        if delete != None:
+        if delete != None or delete != '':
             User.query.filter(User.id == id).delete()
 
         if password[0] != password[1]:
