@@ -29,29 +29,8 @@ main_bp = Blueprint(
 @login_required
 @main_bp.route('/')
 def index():
-    try:
-        if employee.query.count() == 1 or employee.query.count() == 0:
-            boh_positions = ['Kitchen','Dish']
-            for emp in boh_positions:
-                if employee.query.filter(employee.position == emp).count() == 0:
-                    name = 'BOH_' + emp
-                    email = emp + '@gmail.com'
-                    position = emp
-                    
-                    new_emp = employee(
-                    name = name,
-                    email = email,
-                    position= emp
-                    )
-                    db.session.add(new_emp)
-                    db.session.commit()
-                else:
-                    continue
-            
-        return render_template('index.html',employees=employees)
-    except:
-        employees = employee.query.all()
-        return render_template('index.html',employees=employees)
+    employees = employee.query.all()
+    return render_template('index.html',employees=employees)
 
 
 
@@ -115,10 +94,31 @@ def update(id):
 @login_required
 @main_bp.route('/add_employee',methods=["GET","POST"])
 def add_employee():
+    
     positions = ['Expo','Bartender','Server']
     
     if request.method == "GET":
-        return render_template('add_employee.html',positions=positions)
+        try:
+            if employee.query.count() == 1 or employee.query.count() == 0:
+                boh_positions = ['Kitchen','Dish']
+                for emp in boh_positions:
+                    if employee.query.filter(employee.position == emp).count() == 0:
+                        name = 'BOH_' + emp
+                        email = emp + '@gmail.com'
+                        position = emp
+                        
+                        new_emp = employee(
+                        name = name,
+                        email = email,
+                        position= emp
+                        )
+                        db.session.add(new_emp)
+                        db.session.commit()
+                    else:
+                        continue
+            return render_template('add_employee.html',positions=positions)
+        except:
+            return render_template('add_employee.html',positions=positions)
     else:
         name = request.form.get("name")
         email = request.form.get("email")
@@ -273,7 +273,6 @@ def df_prep(df):
     df.drop([cols[0],cols[1]], axis=1, inplace=True)
     df['date'] = pd.to_datetime(df['date'])
     df['tips'] = round(df.tips.astype(int))
-    print('yoyoyoooo!!!')
     return df
            
 def tip_out_prep(df):
