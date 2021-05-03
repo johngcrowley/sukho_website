@@ -1,7 +1,7 @@
 # johngcrowley-lagniapp-for-sukho-thai
-An automated tip-out calculation, storage, retrieval UI that returns data to a google sheet pivot table for each store location. 
+I made a project to automate payroll, tipout, and data visualization tasks for General Management at Sukho Thai LLC.
+Ultimately, it is an automated tip-out calculation, storage, retrieval UI that returns data to a google sheet pivot table for each store location and visualizes payroll.
 
-1. I made a project to automate payroll, tipout, and data visualization tasks for General Management at Sukho Thai LLC
 - admin access that controls views and can update / delegate manager access
 - manager access that controls some views and can update employees, shift tips, database, and export info to according stores' google sheet. 
 - payroll calculator for Gross income, taxed income, and groupbys for each employee by customizable 2 week pay periods. 
