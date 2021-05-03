@@ -29,11 +29,10 @@ main_bp = Blueprint(
 @login_required
 @main_bp.route('/')
 def index():
-    try:
-        employees = employee.query.all()
-    except:
-        employees = 'please add employees to the database'
+    employees = employee.query.all()
     return render_template('index.html',employees=employees)
+
+
 
 @login_required
 @main_bp.route('/update_emp/<int:id>',methods=["GET","POST"])
@@ -73,7 +72,8 @@ def update(id):
         name_to_update.password = generate_password_hash(password[0], method='sha256')
 
         delete = request.form.get('delete')
-        if delete != '':
+        
+        if delete != None or delete != '':
             User.query.filter(User.id == id).delete()
 
         if password[0] != password[1]:
@@ -93,11 +93,32 @@ def update(id):
 
 @login_required
 @main_bp.route('/add_employee',methods=["GET","POST"])
-# @login_required
 def add_employee():
-    positions = ['Expo','Bartender','Server','Dish','Kitchen']
+    
+    positions = ['Expo','Bartender','Server']
+    
     if request.method == "GET":
-        return render_template('add_employee.html',positions=positions)
+        try:
+            if employee.query.count() == 1 or employee.query.count() == 0:
+                boh_positions = ['Kitchen','Dish']
+                for emp in boh_positions:
+                    if employee.query.filter(employee.position == emp).count() == 0:
+                        name = 'BOH_' + emp
+                        email = emp + '@gmail.com'
+                        position = emp
+                        
+                        new_emp = employee(
+                        name = name,
+                        email = email,
+                        position= emp
+                        )
+                        db.session.add(new_emp)
+                        db.session.commit()
+                    else:
+                        continue
+            return render_template('add_employee.html',positions=positions)
+        except:
+            return render_template('add_employee.html',positions=positions)
     else:
         name = request.form.get("name")
         email = request.form.get("email")
@@ -153,9 +174,13 @@ def newshift():
     tipz = request.form.get("tips")
     location = request.form.get("loc")
     time = request.form.get("time")
+    date = request.form.get("date")
+
+    date = pd.to_datetime(date).date()
+    print(date)
 
     new_crew = Crews(
-        created_at = dt.now() 
+        created_at = date 
         )
     db.session.add(new_crew)
     db.session.commit()
@@ -184,8 +209,8 @@ def newshift():
         #             whom = employee.query.filter(
         #                 employee.name == key).first()
         #             to_email.append(whom.email)
-        crew_id = Crews.query.order_by(desc(Crews.created_at)).limit(1).first()
-
+        crew_id = Crews.query.filter(Crews.created_at==date).first()
+        print(crew_id)
         for name in names:
             person = employee.query.filter(employee.name == name).first()
             persons_tips = tip_split(tipz)[0]
@@ -202,6 +227,7 @@ def newshift():
         
         
         if time == 'Dinner':
+
             #Kitchen
             kitchen = employee.query.filter(employee.position == 'Kitchen').first()
             kitchen_tips = tips(
@@ -233,7 +259,7 @@ def newshift():
         return render_template('shift.html',msg=msg)
     
     
-    tipout = tips.query.filter(tips.crew_id==crew_id.id).all()
+    tipout = tips.query.filter(tips.crew_id==crew_id.id,tips.location==location).all()
     c_id = crew_id.id
 
 
@@ -256,6 +282,7 @@ def tip_out_prep(df):
     df['Date'] =  df.date.astype(str) + '\n' + df.day + '\n' + df.time.astype(str)
     df.fillna('-',inplace=True)
     df = df.pivot_table(index="name",columns=["Date"],values="tips")
+    df = df.iloc[:, ::-1]
     return df
 
 def prep_payroll():
@@ -304,33 +331,29 @@ def payroll():
     if request.method == "GET":
         return render_template('payroll.html')
     else:
-        s = request.form.get("date")
+        date = request.form.get("date")
 
-        patt = re.compile('\d{2}[-/]\d{2}[-/]\d{2}')
-
-        if re.findall(patt,s) == []:
-            msg='Not a valid date, try agin'
+        if date == '' or None:
+            #No date selected
+            msg = 'Please select a date'
             return render_template('payroll.html',msg=msg)
         else:
+
+            start = pd.to_datetime(date).date()
+
             try:
-                start = pd.to_datetime(s).date()
-                try:
-                    payroll_df = prep_payroll()
-                    pay_period = pd.date_range(start, start + timedelta(13))
-                    df1 = payroll_df[pay_period].copy()
-                    df1['gross'] = round(df1.sum(axis=1))
-                    df1['claimed'] = round(df1['gross'] * .60)
-                    df2 = df1[['gross','claimed']]
-                    period = f'{start} - {pay_period[-1].date()}'.format(start,pay_period)
-                    return render_template('biweekly.html',df2=df2,period=period)
-                except:
-                    msg = 'you don\'t have enough data yet to pull a 2 week payperiod'
-                    return render_template('payroll.html',msg=msg)
+                payroll_df = prep_payroll()
+                pay_period = pd.date_range(start, start + timedelta(13))
+                df1 = payroll_df[pay_period].copy()
+                df1['gross'] = round(df1.sum(axis=1))
+                df1['claimed'] = round(df1['gross'] * .60)
+                df2 = df1[['gross','claimed']]
+                period = f'{start} - {pay_period[-1].date()}'.format(start,pay_period)
+                return render_template('biweekly.html',df2=df2,period=period)
             except:
-                #if they a sneaky one and try to put in random nubmers in format
-                msg = 'valid format, but not a valid date, good try.'
+                msg = 'you don\'t have enough data yet to pull a 2 week payperiod'
                 return render_template('payroll.html',msg=msg)
 
-    
+
 
 
