@@ -1,7 +1,7 @@
 # johngcrowley-lagniapp-for-sukho-thai
 I made a project to automate payroll, tipout, and data visualization tasks for General Management at Sukho Thai LLC.
 It's honestly really sweet. 
-Without admin or manager access, you can't play around with it, but it is live at https://www.sukhoapp.herokuapp.com
+Without admin or manager access, you can't play around with it, but it is live at https://sukhoapp.herokuapp.com/
 
 - admin access that controls views and can update / delegate manager access
 - manager access that controls some views and can update employees, shift tips, database, and export info to according stores' google sheet. 
